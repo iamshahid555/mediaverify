@@ -1,17 +1,55 @@
 # MediaVerify
 
-MediaVerify is a prototype for checking the credibility of news content. It accepts pasted text or an article URL, prepares the content, runs a credibility analysis, stores the result in SQLite, and displays the latest result plus analysis history in a React interface.
+MediaVerify is a web application for evaluating the credibility of news content. Users can submit either raw text or a public article URL, and the system analyzes the content using source-aware verification signals such as domain trust, attribution, evidence-style wording, dates, quotes, and suspicious language patterns.
 
-## Features Completed In Phase 2
+The project combines a FastAPI backend, a React/Vite frontend, and SQLite-based history storage to provide a complete end-to-end workflow for credibility analysis and review.
 
-- FastAPI backend with `/`, `/health`, `/analyze`, and `/history` endpoints.
-- Text preprocessing for pasted content and URL-based article extraction.
-- Cleaner article-body extraction that prefers real article paragraphs over page chrome.
-- Feature-based credibility scoring using source/domain trust, attribution, dates, quotes, and suspicious-language signals.
-- SQLite persistence for input type, credibility score, label, confidence, and timestamp.
-- React/Vite frontend with input form, loading state, error state, score display, explanation indicators, and stored history.
-- CORS configuration so the Vite frontend can call the backend locally.
-- Docker and local development structure prepared for phase 3 deployment work.
+## Core Features
+
+- Analyze either pasted article text or a live article URL.
+- Extract cleaner article-body content from supported web pages.
+- Score credibility using feature-based verification signals instead of simple sentiment.
+- Return explanation signals alongside the credibility score.
+- Store previous analyses in SQLite and display them in the frontend.
+- Provide a dashboard-style interface for running and reviewing analyses.
+
+## Application Flow
+
+1. A user submits text or a URL from the frontend.
+2. The backend normalizes the input and extracts article content when a URL is provided.
+3. The credibility engine evaluates source trust, attribution, evidence cues, dates, quotes, and suspicious phrasing.
+4. The backend returns a credibility score, label, confidence estimate, and explanation signals.
+5. The result is stored in the history database and shown in the frontend.
+
+## Tech Stack
+
+- Frontend: React, Vite
+- Backend: FastAPI, Python
+- Parsing and scraping: Requests, BeautifulSoup
+- Storage: SQLite
+- Container setup: Docker, Docker Compose
+
+## Project Structure
+
+```text
+mediaverify/
+├── backend/
+│   ├── app/
+│   │   ├── api/
+│   │   ├── db/
+│   │   ├── models/
+│   │   └── services/
+│   └── requirements.txt
+├── frontend/
+│   ├── public/
+│   ├── src/
+│   │   ├── components/
+│   │   └── services/
+│   └── package.json
+├── docker-compose.yml
+├── IMPLEMENTATION_LOG.md
+└── README.md
+```
 
 ## Run Locally
 
@@ -41,12 +79,43 @@ Default URLs:
 - Backend API: `http://127.0.0.1:8000`
 - API docs: `http://127.0.0.1:8000/docs`
 
-## Phase 3 Starting Points
+## API Endpoints
 
-- Add a trained fake-news or claim-verification model on top of the current feature-based baseline.
-- Add automated backend tests for `/analyze`, `/history`, preprocessing, and scraper failures.
-- Add frontend component tests for loading, error, result, and history states.
-- Store the original text preview or URL in history if required by the report.
-- Add authentication only if the final assignment scope requires user-specific history.
-- Expand domain-trust coverage and explainability for more nuanced source handling.
-- Complete Docker Compose deployment and document production environment variables.
+- `GET /`
+  Basic backend status message.
+
+- `GET /health`
+  Health-check endpoint.
+
+- `POST /analyze`
+  Accepts either text or a URL and returns a credibility score, label, confidence, and explanation signals.
+
+- `GET /history`
+  Returns previously stored analysis results.
+
+## Current Credibility Logic
+
+The scoring engine uses a rule-based and feature-driven baseline designed to behave more realistically than sentiment-based classification. It currently considers:
+
+- known or low-trust source domains
+- attribution language such as "according to" or "reported"
+- evidence-style wording such as "data", "study", or "confirmed"
+- traceability cues such as dates and quotes
+- sensational or conspiratorial phrasing
+- absolutist wording and excessive emphasis
+
+This makes the system better suited to credibility analysis than a standard positive/negative tone model, while still remaining explainable.
+
+## Notes
+
+- URL quality depends on how well article text can be extracted from a given publisher layout.
+- The current scoring engine is a strong baseline, but it is still heuristic and not a substitute for full fact-checking.
+- Some domains may need custom extraction rules or expanded trust coverage over time.
+
+## Next Improvements
+
+- expand publisher-specific scraping rules
+- improve domain trust coverage
+- add automated backend and frontend tests
+- support richer explanation breakdowns in the UI
+- optionally add a trained misinformation or claim-verification model on top of the current baseline
