@@ -10,11 +10,11 @@ router = APIRouter()
 @router.post("/analyze", response_model=AnalyzeResponse)
 def analyze_content(request: AnalyzeRequest):
     """
-    Analyze news content using ML inference and return credibility result.
+    Analyze news content and return a structured credibility result.
     """
 
     try:
-        # Step 1: Prepare content and source metadata
+        # Step 1: Prepare content and source metadata.
         content = prepare_content(
             url=str(request.url) if request.url else None,
             text=request.text
@@ -22,33 +22,37 @@ def analyze_content(request: AnalyzeRequest):
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc))
 
-    # Step 2: Run ML inference
-    ml_result = analyze_text(
+    # Step 2: Run the credibility analysis engine.
+    analysis_result = analyze_text(
         content["text"],
         source_domain=content["source_domain"],
     )
 
-    # Step 3: Build explanation response
+    # Step 3: Build the explanation payload.
     explanation = Explanation(
-        label=ml_result["credibility_label"],
-        confidence=ml_result["confidence"],
-        indicators=ml_result["indicators"]
+        label=analysis_result["credibility_label"],
+        confidence=analysis_result["confidence"],
+        indicators=analysis_result["indicators"]
     )
 
     input_type = content["input_type"]
     save_analysis(
-            input_type=input_type,
-            credibility_score=ml_result["credibility_score"],
-            credibility_label=ml_result["credibility_label"],
-            confidence=ml_result["confidence"]
+        input_type=input_type,
+        credibility_score=analysis_result["credibility_score"],
+        credibility_label=analysis_result["credibility_label"],
+        confidence=analysis_result["confidence"],
+        content_preview=content["content_preview"],
+        source_url=content["source_url"],
+        source_domain=content["source_domain"],
     )
 
-    # Step 4: Return structured API response
+    # Step 4: Return the API response.
     return AnalyzeResponse(
-        credibility_score=ml_result["credibility_score"],
-        credibility_label=ml_result["credibility_label"],
+        credibility_score=analysis_result["credibility_score"],
+        credibility_label=analysis_result["credibility_label"],
         explanation=explanation
     )
+
 
 @router.get("/history")
 def get_history():

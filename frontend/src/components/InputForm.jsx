@@ -4,29 +4,44 @@ function InputForm({ onAnalyze, isLoading }) {
   const [text, setText] = useState("");
   const [url, setUrl] = useState("");
   const [inputMode, setInputMode] = useState("text");
+  const [validationMessage, setValidationMessage] = useState("");
+
+  const handleModeChange = (nextMode) => {
+    setInputMode(nextMode);
+    setValidationMessage("");
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    const trimmedText = text.trim();
+    const trimmedUrl = url.trim();
 
-    if (inputMode === "text" && !text.trim()) {
-      alert("Enter article text");
+    if (inputMode === "text" && !trimmedText) {
+      setValidationMessage("Enter article or claim text to analyze.");
       return;
     }
 
-    if (inputMode === "url" && !url.trim()) {
-      alert("Enter article URL");
+    if (inputMode === "text" && trimmedText.length < 50) {
+      setValidationMessage("Enter at least 50 characters so the analysis has enough context.");
       return;
     }
 
+    if (inputMode === "url" && !trimmedUrl) {
+      setValidationMessage("Enter a public article URL to analyze.");
+      return;
+    }
+
+    setValidationMessage("");
     onAnalyze({
-      text: inputMode === "text" ? text.trim() : null,
-      url: inputMode === "url" ? url.trim() : null,
+      text: inputMode === "text" ? trimmedText : null,
+      url: inputMode === "url" ? trimmedUrl : null,
     });
   };
 
   const handleClear = () => {
     setText("");
     setUrl("");
+    setValidationMessage("");
   };
 
   return (
@@ -41,16 +56,18 @@ function InputForm({ onAnalyze, isLoading }) {
 
       <div className="mode-toggle" aria-label="Choose input type">
         <button
+          aria-pressed={inputMode === "text"}
           className={inputMode === "text" ? "active" : ""}
           type="button"
-          onClick={() => setInputMode("text")}
+          onClick={() => handleModeChange("text")}
         >
           Text
         </button>
         <button
+          aria-pressed={inputMode === "url"}
           className={inputMode === "url" ? "active" : ""}
           type="button"
-          onClick={() => setInputMode("url")}
+          onClick={() => handleModeChange("url")}
         >
           URL
         </button>
@@ -60,21 +77,41 @@ function InputForm({ onAnalyze, isLoading }) {
         <label>
           <span>Article or claim text</span>
           <textarea
+            aria-describedby={validationMessage ? "analysis-form-message" : undefined}
+            aria-invalid={Boolean(validationMessage) && inputMode === "text"}
             placeholder="Paste the content you want to verify..."
             value={text}
-            onChange={(e) => setText(e.target.value)}
+            onChange={(e) => {
+              setText(e.target.value);
+              if (validationMessage) {
+                setValidationMessage("");
+              }
+            }}
           />
         </label>
       ) : (
         <label>
           <span>Article URL</span>
           <input
+            aria-describedby={validationMessage ? "analysis-form-message" : undefined}
+            aria-invalid={Boolean(validationMessage) && inputMode === "url"}
             type="url"
             placeholder="https://example.com/news/article"
             value={url}
-            onChange={(e) => setUrl(e.target.value)}
+            onChange={(e) => {
+              setUrl(e.target.value);
+              if (validationMessage) {
+                setValidationMessage("");
+              }
+            }}
           />
         </label>
+      )}
+
+      {validationMessage && (
+        <p className="field-message" id="analysis-form-message" role="alert">
+          {validationMessage}
+        </p>
       )}
 
       <div className="form-actions">
@@ -82,7 +119,12 @@ function InputForm({ onAnalyze, isLoading }) {
           {isLoading ? "Analyzing..." : "Analyze"}
         </button>
 
-        <button className="secondary-action" type="button" onClick={handleClear}>
+        <button
+          className="secondary-action"
+          type="button"
+          onClick={handleClear}
+          disabled={isLoading}
+        >
           Clear
         </button>
       </div>

@@ -37,6 +37,18 @@ The project focuses on transparency as much as prediction. Instead of treating s
 - Practical handling of article scraping, content normalization, and frontend-backend integration
 - Product-oriented UI work focused on clarity, workflow, and usability
 
+## Architecture Overview
+
+```mermaid
+flowchart LR
+    A[React Frontend] --> B[FastAPI API]
+    B --> C[Preprocessing and URL Extraction]
+    C --> D[Feature-Based Credibility Engine]
+    B --> E[SQLite History Store]
+    D --> B
+    E --> B
+```
+
 ## Project Structure
 
 ```text
@@ -179,6 +191,8 @@ Each history record includes:
 - credibility score
 - credibility label
 - confidence
+- content preview
+- source URL and source domain for URL-based submissions
 - timestamp
 
 ## Scripts
@@ -194,6 +208,17 @@ Backend command:
 
 - `uvicorn app.main:app --reload --host 127.0.0.1 --port 8000` - start the FastAPI development server
 
+## Testing
+
+Backend unit and API tests are included for the scoring engine, preprocessing flow, and core API behavior.
+
+Run them with:
+
+```bash
+cd backend
+../.venv/bin/python -m unittest discover -s tests -v
+```
+
 ## Current Limitations
 
 - Article extraction quality depends on the publisher layout and how cleanly page content can be parsed.
@@ -203,8 +228,8 @@ Backend command:
 
 ## Future Improvements
 
-- Add automated backend tests for scoring, preprocessing, and history endpoints
-- Add frontend tests for loading, error, and result states
+- Expand backend test coverage and add frontend component tests
+- Add filtering and richer drill-down for saved history items
 - Expand publisher-specific scraping rules for more reliable article extraction
 - Improve source reputation coverage and explanation quality for borderline cases
 - Add per-user authentication and scoped history

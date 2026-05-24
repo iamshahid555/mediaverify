@@ -68,6 +68,14 @@ function App() {
     }
   };
 
+  const getHistoryContext = (item) => {
+    if (item.input_type === "url") {
+      return item.source_domain ? item.source_domain : "URL analysis";
+    }
+
+    return "Text analysis";
+  };
+
   return (
     <div className="app-shell">
       <nav className="topbar" aria-label="Main navigation">
@@ -159,13 +167,21 @@ function App() {
             <div className="history-list">
               {history.slice(0, 6).map((item) => (
                 <article className="history-item" key={item.id}>
-                  <div>
-                    <p className="label">{item.credibility_label}</p>
+                  <div className="history-copy">
+                    <div className="history-heading">
+                      <p className="label">{item.credibility_label}</p>
+                      <p className="history-context">{getHistoryContext(item)}</p>
+                    </div>
+                    {item.content_preview && (
+                      <p className="history-preview">{item.content_preview}</p>
+                    )}
                     <p className="muted">
                       {item.input_type.toUpperCase()} - {new Date(item.created_at).toLocaleString()}
                     </p>
                   </div>
-                  <strong>{Math.round(item.credibility_score * 100)}%</strong>
+                  <strong className="history-score">
+                    {Math.round(item.credibility_score * 100)}%
+                  </strong>
                 </article>
               ))}
             </div>
