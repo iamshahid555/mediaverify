@@ -39,6 +39,26 @@ The project focuses on transparency as much as prediction. Instead of treating s
 - Practical handling of article scraping, content normalization, and frontend-backend integration
 - Product-oriented UI work focused on clarity, workflow, and usability
 
+## Application Preview
+
+### Dashboard Workspace
+
+![MediaVerify dashboard workspace showing the app interface with a left-side analysis form and right-side summary cards. The left panel displays a sign in greeting Welcome back, Mohammad and an Analyze form for Text or URL with placeholder article text. The right column shows summary cards including 3 Saved analyses, 63% Average score, 1 Likely credible, and 2 Verified domains, plus a Credibility Assessment card showing 52% Needs Review Confidence 54%. Top navigation shows MediaVerify, Workspace Result History and a user badge Mohammad Shahid Ahmed shahidahmed3296@gmail.com Sign Out. The layout is calm, professional, and informative.](./docs/images/dashboard-workspace.png)
+
+The main workspace allows authenticated users to analyze article text or public URLs, review credibility explanations, and access account-specific history directly from the dashboard.
+
+### API Documentation
+
+![FastAPI Swagger UI for the MediaVerify API showing the API documentation and testing interface. The expanded POST /analyze endpoint is visible with example request and response bodies, and listed endpoints include GET /history, GET /, GET /health and auth endpoints register, login, me, logout. The interface shows an authorization header input and schema entries such as AnalyzeRequest, AnalyzeResponse, Explanation, and HistoryResponse. The environment is a developer-focused API testing page with a clean technical layout.](./docs/images/swagger-api.png)
+
+FastAPI automatically generates OpenAPI-based API documentation for testing endpoints, validating request schemas, and inspecting backend response structures.
+
+### Docker Deployment
+
+![Terminal showing docker compose up output for mediaverify, with frontend-1 starting Vite and backend-1 starting Uvicorn on port 8000. Visible terminal text includes Local http://localhost:5173, Network http://172.20.0.3:5173, Loading weights 100 percent, and Application startup complete. The view conveys a working development environment and a practical technical tone.](./docs/images/docker-environment.png)
+
+The application can be launched using Docker Compose, which starts the frontend and backend services together inside a reproducible local development environment.
+
 ## Architecture Overview
 
 ```mermaid
