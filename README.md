@@ -2,7 +2,7 @@
 
 MediaVerify is a full-stack web application for evaluating the credibility of news-style content. A user can submit either pasted text or a public article URL, and the system extracts the content, applies an explainable scoring pipeline, returns a credibility result, and stores the analysis for later review.
 
-The project prioritizes transparency alongside prediction.. Instead of treating sentiment as a proxy for credibility, MediaVerify uses source-aware and language-aware verification signals so that the output is easier to inspect, explain, and improve over time.
+The project prioritizes transparency alongside prediction. Instead of treating sentiment as a proxy for credibility, MediaVerify uses source-aware and language-aware verification signals so that the output is easier to inspect, explain, and improve over time.
 
 ## Key Features
 
