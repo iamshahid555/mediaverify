@@ -1,55 +1,41 @@
 # MediaVerify
 
-MediaVerify is a full-stack web application for evaluating the credibility of news content. It accepts either pasted text or a public article URL, extracts and normalizes the content, applies an explainable credibility scoring pipeline, and stores the result for later review.
+MediaVerify is a full-stack web application for evaluating the credibility of news-style content. A user can submit either pasted text or a public article URL, and the system extracts the content, applies an explainable scoring pipeline, returns a credibility result, and stores the analysis for later review.
 
-The project was built to explore practical credibility analysis with an emphasis on transparency. Instead of relying on sentiment alone, MediaVerify uses source-aware and language-aware verification signals so that each result can be explained in a way that is meaningful to a user.
+The project focuses on transparency as much as prediction. Instead of treating sentiment as a proxy for credibility, MediaVerify uses source-aware and language-aware verification signals so that the output is easier to inspect, explain, and improve over time.
 
-## Highlights
+## Key Features
 
-- Analyze either raw article text or a live article URL.
+- Analyze either pasted article text or a live public article URL.
 - Extract likely article-body content instead of scoring an entire webpage.
-- Score credibility using explainable verification signals rather than pure sentiment.
-- Return confidence and human-readable explanation signals with every result.
-- Store previous analyses in SQLite and surface them in the frontend dashboard.
-- Provide a clean React interface backed by a FastAPI API.
-
-## What This Project Demonstrates
-
-- End-to-end full-stack development with React, FastAPI, and SQLite.
-- Practical backend service design with preprocessing, scoring, persistence, and API response modeling.
-- Explainable scoring logic for a non-trivial problem domain.
-- Real-world handling of article scraping, content normalization, and frontend-to-backend integration.
-- Product-oriented UI work focused on usability, clarity, and workflow.
+- Score content using explainable credibility signals rather than pure sentiment.
+- Return a credibility score, label, confidence value, and explanation signals.
+- Store previous analyses in SQLite and surface them in the dashboard.
+- Provide a clean React frontend backed by a FastAPI API.
 
 ## How It Works
 
-1. A user submits either article text or a public URL from the frontend.
-2. The backend normalizes the input and extracts article-body text when a URL is provided.
-3. The credibility engine evaluates the content using source trust, attribution cues, evidence signals, dates, quotes, and suspicious phrasing.
-4. The backend returns a credibility score, label, confidence estimate, and explanation signals.
-5. The result is stored in the history database and shown in the dashboard.
+1. The user submits either article text or a public URL from the frontend.
+2. The backend normalizes the input and extracts article-body content when a URL is provided.
+3. The credibility engine evaluates the content using source trust, attribution cues, evidence wording, dates, quotes, and suspicious phrasing.
+4. The backend returns a credibility score, a label, a confidence estimate, and explanation signals.
+5. The result is stored in the history database and displayed in the interface.
 
 ## Tech Stack
 
-- Frontend: React, Vite
-- Backend: FastAPI, Python
+- Frontend: React, Vite, CSS
+- Backend: FastAPI, Python 3.11
 - Scraping and parsing: Requests, BeautifulSoup
 - Storage: SQLite
-- Local container setup: Docker, Docker Compose
+- Containerization: Docker, Docker Compose
 
-## Credibility Engine
+## What This Project Demonstrates
 
-The current scoring pipeline is rule-based and feature-driven. It is designed to be interpretable and to behave more realistically than a sentiment classifier used as a credibility proxy.
-
-Signals currently considered include:
-
-- known or low-trust source domains
-- attribution language such as "according to", "reported", or "confirmed"
-- evidence-style wording such as "study", "data", or "statement"
-- traceability cues such as dates and direct quotes
-- sensational, conspiratorial, or absolutist phrasing
-
-This makes the output easier to explain, inspect, and improve over time. It also creates a strong baseline for future work involving trained misinformation or claim-verification models.
+- End-to-end full-stack development with React, FastAPI, and SQLite
+- API design for preprocessing, scoring, persistence, and history retrieval
+- Explainable scoring logic for a real-world content analysis problem
+- Practical handling of article scraping, content normalization, and frontend-backend integration
+- Product-oriented UI work focused on clarity, workflow, and usability
 
 ## Project Structure
 
@@ -61,35 +47,71 @@ mediaverify/
 │   │   ├── db/
 │   │   ├── models/
 │   │   └── services/
+│   ├── Dockerfile
 │   └── requirements.txt
 ├── frontend/
 │   ├── public/
 │   ├── src/
 │   │   ├── components/
-│   │   └── services/
+│   │   ├── services/
+│   │   └── assets/
+│   ├── Dockerfile
 │   └── package.json
 ├── docker-compose.yml
 ├── IMPLEMENTATION_LOG.md
 └── README.md
 ```
 
+## Prerequisites
+
+- Python 3.11+
+- Node.js 22+ recommended
+- npm
+- pip
+- Docker Desktop, if you want to run the containerized setup
+
 ## Run Locally
 
-Backend:
+### 1. Clone the repository
 
 ```bash
-cd backend
-../.venv/bin/uvicorn app.main:app --reload
+git clone https://github.com/iamshahid555/mediaverify.git
+cd mediaverify
 ```
 
-Frontend:
+### 2. Set up and run the backend
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r backend/requirements.txt
+cd backend
+uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
+```
+
+The backend API will run at `http://127.0.0.1:8000`.
+
+### 3. Set up and run the frontend
+
+Open a second terminal in the project root:
 
 ```bash
 cd frontend
+npm install
 npm run dev
 ```
 
-Docker Compose:
+The frontend will run at `http://localhost:5173`.
+
+### 4. Optional frontend API configuration
+
+The frontend defaults to `http://127.0.0.1:8000`. To point it somewhere else, create `frontend/.env.local` and set:
+
+```bash
+VITE_API_URL=http://127.0.0.1:8000
+```
+
+## Run With Docker
 
 ```bash
 docker compose up --build
@@ -99,32 +121,91 @@ Default URLs:
 
 - Frontend: `http://localhost:5173`
 - Backend API: `http://127.0.0.1:8000`
-- API documentation: `http://127.0.0.1:8000/docs`
+- API docs: `http://127.0.0.1:8000/docs`
 
 ## API Overview
 
 - `GET /`
-  Returns a basic backend status message.
+  Returns a simple backend status message.
 
 - `GET /health`
   Returns a health-check response.
 
 - `POST /analyze`
-  Accepts text or a URL and returns a credibility score, label, confidence value, and explanation signals.
+  Accepts either raw text or a public URL and returns a credibility score, label, confidence value, and explanation signals.
 
 - `GET /history`
   Returns previously stored analysis results.
 
-## Limitations
+### Example Request Bodies
 
-- Article extraction quality depends on the publisher layout and how cleanly the page structure can be parsed.
-- The current scoring engine is explainable and practical, but it is still heuristic and not a substitute for full fact-checking.
+Text analysis:
+
+```json
+{
+  "text": "According to the national weather service, heavy rainfall is expected across the region this weekend, and local authorities have advised residents in flood-prone areas to monitor official updates."
+}
+```
+
+URL analysis:
+
+```json
+{
+  "url": "https://www.cdc.gov/flu/vaccines/"
+}
+```
+
+## Credibility Engine
+
+The current scoring pipeline is rule-based and feature-driven. It is intentionally explainable and behaves more realistically than a sentiment classifier used as a credibility proxy.
+
+Signals currently considered include:
+
+- known or low-trust source domains
+- attribution language such as "according to", "reported", or "confirmed"
+- evidence wording such as "study", "data", "statement", or "report"
+- traceability cues such as dates and direct quotes
+- sensational, conspiratorial, or absolutist phrasing
+
+This makes the output easier to explain, inspect, and refine. It also provides a clear baseline for future work involving trained misinformation or claim-verification models.
+
+## Data Persistence
+
+Analysis history is stored in SQLite at `backend/app/mediaverify.db`.
+
+Each history record includes:
+
+- input type
+- credibility score
+- credibility label
+- confidence
+- timestamp
+
+## Scripts
+
+Frontend scripts:
+
+- `npm run dev` - start the Vite development server
+- `npm run build` - create a production build
+- `npm run lint` - run ESLint
+- `npm run preview` - preview the production build locally
+
+Backend command:
+
+- `uvicorn app.main:app --reload --host 127.0.0.1 --port 8000` - start the FastAPI development server
+
+## Current Limitations
+
+- Article extraction quality depends on the publisher layout and how cleanly page content can be parsed.
+- The scoring engine is practical and explainable, but it remains heuristic and is not a replacement for full fact-checking.
 - Domain trust coverage is limited and can be expanded for broader source handling.
+- History is stored locally in SQLite and is not yet scoped to individual user accounts.
 
 ## Future Improvements
 
-- Add automated backend tests for scoring, preprocessing, and history endpoints.
-- Add frontend tests for loading, error, and result states.
-- Expand publisher-specific scraping rules for more reliable article extraction.
-- Improve domain reputation coverage and explanation quality for borderline cases.
-- Add a trained misinformation or claim-verification model on top of the current baseline.
+- Add automated backend tests for scoring, preprocessing, and history endpoints
+- Add frontend tests for loading, error, and result states
+- Expand publisher-specific scraping rules for more reliable article extraction
+- Improve source reputation coverage and explanation quality for borderline cases
+- Add per-user authentication and scoped history
+- Introduce a trained misinformation or claim-verification model on top of the current baseline
