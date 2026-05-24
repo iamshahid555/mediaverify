@@ -43,13 +43,24 @@ The project focuses on transparency as much as prediction. Instead of treating s
 
 ```mermaid
 flowchart LR
-    A[React Frontend] --> B[FastAPI API]
-    B --> C[Preprocessing and URL Extraction]
-    C --> D[Feature-Based Credibility Engine]
-    B --> E[SQLite History Store]
-    D --> B
+    A[React Frontend] --> B[FastAPI Backend]
+
+    B --> C[Scraper Service]
+    B --> D[Preprocessing Service]
+    B --> E[Credibility Engine]
+    B --> F[(SQLite Database)]
+
+    C --> D
+    D --> E
     E --> B
+    F --> B
 ```
+
+## Why the Credibility Engine Was Redesigned
+
+Early versions of MediaVerify used transformer-based sentiment analysis as a simplified credibility approximation. During testing, this produced unrealistic behavior because legitimate but emotionally negative reporting was often classified as low credibility.
+
+To improve realism and explainability, the project evolved into a feature-based scoring pipeline that evaluates attribution language, evidence wording, source trust, traceability signals, and suspicious phrasing patterns.
 
 ## Project Structure
 
@@ -247,6 +258,7 @@ cd backend
 - Domain trust coverage is limited and can be expanded for broader source handling.
 - Session tokens are stored locally in the browser for convenience and are not yet backed by token expiry or refresh logic.
 
+
 ## Future Improvements
 
 - Expand backend test coverage and add frontend component tests
@@ -256,3 +268,7 @@ cd backend
 - Add session expiry and stronger account security controls
 - Add profile settings and account management
 - Introduce a trained misinformation or claim-verification model on top of the current baseline
+
+## License
+
+This project is licensed under the MIT License.
