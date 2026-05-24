@@ -9,12 +9,21 @@ from fastapi.testclient import TestClient
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from app.api.analyze import router  # noqa: E402
+from app.services.security import require_current_user  # noqa: E402
+
+TEST_USER = {
+    "id": 7,
+    "full_name": "Taylor Analyst",
+    "email": "taylor@example.com",
+    "created_at": "2026-05-24T10:00:00",
+}
 
 
 class AnalyzeApiTests(unittest.TestCase):
     def setUp(self):
         app = FastAPI()
         app.include_router(router)
+        app.dependency_overrides[require_current_user] = lambda: TEST_USER
         self.client = TestClient(app)
 
     @patch("app.api.analyze.save_analysis")
@@ -54,6 +63,7 @@ class AnalyzeApiTests(unittest.TestCase):
         self.assertEqual(response.json()["credibility_label"], "Likely Credible")
         self.assertIn("confidence", response.json()["explanation"])
         mock_save_analysis.assert_called_once_with(
+            user_id=7,
             input_type="text",
             credibility_score=0.72,
             credibility_label="Likely Credible",
@@ -102,6 +112,7 @@ class AnalyzeApiTests(unittest.TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json()["history"][0]["source_domain"], "example.com")
+        mock_get_analysis_history.assert_called_once_with(7)
 
     @patch("app.api.analyze.save_analysis")
     @patch("app.api.analyze.analyze_text")

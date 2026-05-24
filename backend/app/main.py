@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.api.analyze import router as analyze_router
+from app.api.auth import router as auth_router
 from app.db.database import init_db
 
 app = FastAPI(
@@ -23,6 +24,7 @@ app.add_middleware(
 init_db()
 
 app.include_router(analyze_router)
+app.include_router(auth_router)
 
 
 @app.get("/")

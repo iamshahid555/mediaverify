@@ -7,6 +7,7 @@ The project focuses on transparency as much as prediction. Instead of treating s
 ## Key Features
 
 - Analyze either pasted article text or a live public article URL.
+- Create an account and keep a private, user-specific analysis history.
 - Extract likely article-body content instead of scoring an entire webpage.
 - Score content using explainable credibility signals rather than pure sentiment.
 - Return a credibility score, a three-level label, confidence value, and explanation signals.
@@ -18,8 +19,8 @@ The project focuses on transparency as much as prediction. Instead of treating s
 1. The user submits either article text or a public URL from the frontend.
 2. The backend normalizes the input and extracts article-body content when a URL is provided.
 3. The credibility engine evaluates the content using source trust, attribution cues, evidence wording, dates, quotes, and suspicious phrasing.
-4. The backend returns a credibility score, a label, a confidence estimate, and explanation signals.
-5. The result is stored in the history database and displayed in the interface.
+4. Authenticated users receive a credibility score, a label, a confidence estimate, and explanation signals.
+5. The result is stored in the signed-in user's history and displayed in the interface.
 
 ## Tech Stack
 
@@ -27,6 +28,7 @@ The project focuses on transparency as much as prediction. Instead of treating s
 - Backend: FastAPI, Python 3.11
 - Scraping and parsing: Requests, BeautifulSoup
 - Storage: SQLite
+- Authentication: account registration, login, hashed passwords, session tokens
 - Containerization: Docker, Docker Compose
 
 ## What This Project Demonstrates
@@ -147,7 +149,19 @@ Default URLs:
   Accepts either raw text or a public URL and returns a credibility score, label, confidence value, and explanation signals.
 
 - `GET /history`
-  Returns previously stored analysis results.
+  Returns the signed-in user's stored analysis results.
+
+- `POST /auth/register`
+  Creates a user account and returns a session token plus the user profile.
+
+- `POST /auth/login`
+  Authenticates an existing user and returns a session token plus the user profile.
+
+- `GET /auth/me`
+  Returns the current signed-in user for the provided session token.
+
+- `POST /auth/logout`
+  Ends the active session token.
 
 ### Example Request Bodies
 
@@ -200,6 +214,7 @@ Each history record includes:
 - content preview
 - source URL and source domain for URL-based submissions
 - timestamp
+- the user account that owns the record
 
 ## Scripts
 
@@ -216,7 +231,7 @@ Backend command:
 
 ## Testing
 
-Backend unit and API tests are included for the scoring engine, preprocessing flow, and core API behavior.
+Backend unit and API tests are included for the scoring engine, preprocessing flow, authentication flow, and core API behavior.
 
 Run them with:
 
@@ -230,7 +245,7 @@ cd backend
 - Article extraction quality depends on the publisher layout and how cleanly page content can be parsed.
 - The scoring engine is practical and explainable, but it remains heuristic and is not a replacement for full fact-checking.
 - Domain trust coverage is limited and can be expanded for broader source handling.
-- History is stored locally in SQLite and is not yet scoped to individual user accounts.
+- Session tokens are stored locally in the browser for convenience and are not yet backed by token expiry or refresh logic.
 
 ## Future Improvements
 
@@ -238,5 +253,6 @@ cd backend
 - Add filtering and richer drill-down for saved history items
 - Expand publisher-specific scraping rules for more reliable article extraction
 - Improve source reputation coverage and explanation quality for borderline cases
-- Add per-user authentication and scoped history
+- Add session expiry and stronger account security controls
+- Add profile settings and account management
 - Introduce a trained misinformation or claim-verification model on top of the current baseline

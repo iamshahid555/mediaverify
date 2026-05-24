@@ -1,6 +1,9 @@
+import re
 from typing import List, Optional
 
-from pydantic import BaseModel, HttpUrl, model_validator
+from pydantic import BaseModel, HttpUrl, field_validator, model_validator
+
+EMAIL_PATTERN = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 
 
 class AnalyzeRequest(BaseModel):
@@ -23,6 +26,67 @@ class AnalyzeRequest(BaseModel):
             self.text = self.text.strip()
 
         return self
+
+
+class RegisterRequest(BaseModel):
+    full_name: str
+    email: str
+    password: str
+
+    @field_validator("full_name")
+    @classmethod
+    def validate_full_name(cls, value: str) -> str:
+        cleaned = value.strip()
+        if len(cleaned) < 2:
+            raise ValueError("Enter a full name with at least 2 characters.")
+        return cleaned
+
+    @field_validator("email")
+    @classmethod
+    def validate_email(cls, value: str) -> str:
+        cleaned = value.strip().lower()
+        if not EMAIL_PATTERN.match(cleaned):
+            raise ValueError("Provide a valid email address.")
+        return cleaned
+
+    @field_validator("password")
+    @classmethod
+    def validate_password(cls, value: str) -> str:
+        if len(value) < 8:
+            raise ValueError("Password must be at least 8 characters long.")
+        return value
+
+
+class LoginRequest(BaseModel):
+    email: str
+    password: str
+
+    @field_validator("email")
+    @classmethod
+    def validate_email(cls, value: str) -> str:
+        cleaned = value.strip().lower()
+        if not EMAIL_PATTERN.match(cleaned):
+            raise ValueError("Provide a valid email address.")
+        return cleaned
+
+    @field_validator("password")
+    @classmethod
+    def validate_password(cls, value: str) -> str:
+        if not value:
+            raise ValueError("Password is required.")
+        return value
+
+
+class UserResponse(BaseModel):
+    id: int
+    full_name: str
+    email: str
+    created_at: str
+
+
+class AuthResponse(BaseModel):
+    token: str
+    user: UserResponse
 
 
 class HistoryItem(BaseModel):
@@ -57,3 +121,7 @@ class AnalyzeResponse(BaseModel):
 
 class HistoryResponse(BaseModel):
     history: List[HistoryItem]
+
+
+class MessageResponse(BaseModel):
+    message: str

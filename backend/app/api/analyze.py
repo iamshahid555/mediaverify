@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from app.models.schemas import (
     AnalyzeRequest,
     AnalyzeResponse,
@@ -8,12 +8,16 @@ from app.models.schemas import (
 from app.services.preprocessing import prepare_content
 from app.services.inference import analyze_text
 from app.db.database import save_analysis, get_analysis_history
+from app.services.security import require_current_user
 
 router = APIRouter()
 
 
 @router.post("/analyze", response_model=AnalyzeResponse)
-def analyze_content(request: AnalyzeRequest):
+def analyze_content(
+    request: AnalyzeRequest,
+    current_user: dict = Depends(require_current_user),
+):
     """
     Analyze news content and return a structured credibility result.
     """
@@ -42,6 +46,7 @@ def analyze_content(request: AnalyzeRequest):
 
     input_type = content["input_type"]
     save_analysis(
+        user_id=current_user["id"],
         input_type=input_type,
         credibility_score=analysis_result["credibility_score"],
         credibility_label=analysis_result["credibility_label"],
@@ -60,10 +65,10 @@ def analyze_content(request: AnalyzeRequest):
 
 
 @router.get("/history", response_model=HistoryResponse)
-def get_history():
+def get_history(current_user: dict = Depends(require_current_user)):
     """
     Retrieve previously saved analysis results.
     """
     return {
-        "history": get_analysis_history()
+        "history": get_analysis_history(current_user["id"])
     }
