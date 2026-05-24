@@ -1,5 +1,10 @@
 from fastapi import APIRouter, HTTPException
-from app.models.schemas import AnalyzeRequest, AnalyzeResponse, Explanation
+from app.models.schemas import (
+    AnalyzeRequest,
+    AnalyzeResponse,
+    Explanation,
+    HistoryResponse,
+)
 from app.services.preprocessing import prepare_content
 from app.services.inference import analyze_text
 from app.db.database import save_analysis, get_analysis_history
@@ -54,7 +59,7 @@ def analyze_content(request: AnalyzeRequest):
     )
 
 
-@router.get("/history")
+@router.get("/history", response_model=HistoryResponse)
 def get_history():
     """
     Retrieve previously saved analysis results.

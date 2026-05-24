@@ -70,6 +70,18 @@ class AnalyzeApiTests(unittest.TestCase):
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.json()["detail"], "Provided text is too short for analysis.")
 
+    def test_analyze_rejects_multiple_input_sources(self):
+        response = self.client.post(
+            "/analyze",
+            json={
+                "text": "According to the local authority, the scheduled maintenance will continue through the weekend for the central route.",
+                "url": "https://example.com/article",
+            },
+        )
+
+        self.assertEqual(response.status_code, 422)
+        self.assertIn("Provide exactly one", response.text)
+
     @patch("app.api.analyze.get_analysis_history")
     def test_history_returns_saved_records(self, mock_get_analysis_history):
         mock_get_analysis_history.return_value = [
