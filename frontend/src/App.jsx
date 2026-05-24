@@ -239,7 +239,7 @@ function App() {
                 <strong>{currentUser.full_name}</strong>
                 <span>{currentUser.email}</span>
               </div>
-              <button className="ghost-button" type="button" onClick={handleLogout}>
+              <button className="ghost-button hover-transition" type="button" onClick={handleLogout}>
                 Sign Out
               </button>
             </>
@@ -277,7 +277,7 @@ function App() {
           </div>
           <div>
             <span>{trackedSources}</span>
-            <p>Tracked sources</p>
+            <p>Verified domains</p>
           </div>
         </div>
       </header>
@@ -325,7 +325,7 @@ function App() {
 
             {currentUser ? (
               result ? (
-                <div className="result-content">
+                <div className={`result-content result-${resultTone}`}>
                   <div className={`score-ring tone-${resultTone}`} style={{ "--score": `${resultPercent}%` }}>
                     <span>{resultPercent}%</span>
                   </div>
@@ -350,8 +350,8 @@ function App() {
                 </div>
               ) : (
                 <div className="empty-state">
-                  <strong>No result yet</strong>
-                  <p>Run an analysis to see the latest credibility assessment.</p>
+                  <strong>No assessment available</strong>
+                  <p>Run an analysis to generate a credibility assessment, confidence score, and explainability signals.</p>
                 </div>
               )
             ) : (
@@ -380,7 +380,7 @@ function App() {
                     const tone = getTone(item.credibility_label);
 
                     return (
-                      <article className="history-item" key={item.id}>
+                      <article className={`history-item history-${tone}`} key={item.id}>
                         <div className="history-copy">
                           <div className="history-heading">
                             <p className={`status-pill tone-${tone}`}>{item.credibility_label}</p>
