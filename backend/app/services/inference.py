@@ -5,11 +5,29 @@ TRUSTED_DOMAIN_SCORES = {
     "reuters.com": 0.22,
     "apnews.com": 0.2,
     "bbc.com": 0.18,
+    "bbc.co.uk": 0.18,
+    "nytimes.com": 0.18,
+    "washingtonpost.com": 0.18,
+    "wsj.com": 0.18,
+    "ft.com": 0.18,
+    "theguardian.com": 0.18,
+    "npr.org": 0.2,
+    "abcnews.go.com": 0.18,
+    "cbsnews.com": 0.18,
+    "nbcnews.com": 0.18,
+    "usatoday.com": 0.16,
+    "aljazeera.com": 0.16,
+    "bloomberg.com": 0.18,
+    "politico.com": 0.14,
     "nasa.gov": 0.24,
     "cdc.gov": 0.24,
     "nih.gov": 0.22,
     "who.int": 0.24,
     "un.org": 0.18,
+    "goal.com": 0.14,
+    "espn.com": 0.16,
+    "skysports.com": 0.16,
+    "theathletic.com": 0.16,
 }
 
 LOW_TRUST_DOMAIN_SCORES = {
@@ -61,8 +79,8 @@ AGENCY_PATTERNS = [
 ]
 
 ABSOLUTIST_PATTERN = re.compile(
-    r"\b(all|always|never|nobody|everyone|completely|guaranteed|proves?|"
-    r"undeniable|instantly|every)\b",
+    r"\b(always|never|nobody|everyone|completely|guaranteed|proves?|"
+    r"undeniable|instantly)\b",
     re.IGNORECASE,
 )
 DATE_PATTERN = re.compile(
@@ -125,6 +143,12 @@ def _build_indicators(
             f"Risk signal: {matched_domain} has a weaker reliability baseline and needs stronger independent confirmation.",
         ))
 
+    if source_domain and not matched_domain and domain_score == 0:
+        signals.append((
+            0.04,
+            f"Source signal: {source_domain} is not yet in the source reference list, so the result relies more on article wording than source history.",
+        ))
+
     if attribution_hits >= 2 or agency_hits >= 1:
         signals.append((
             0.12,
@@ -143,7 +167,7 @@ def _build_indicators(
             "Risk signal: the wording includes sensational or conspiratorial language often seen in misleading content.",
         ))
 
-    if absolutist_hits >= 2:
+    if absolutist_hits >= 3:
         signals.append((
             0.08,
             "Risk signal: absolutist wording like 'all', 'never', or 'guaranteed' lowers credibility confidence.",
@@ -213,13 +237,22 @@ def analyze_text(text: str, source_domain: str | None = None) -> dict:
         score += 0.03
 
     score -= min(0.24, sensational_hits * 0.08)
-    score -= min(0.12, absolutist_hits * 0.025)
+    score -= min(0.08, absolutist_hits * 0.02)
     score -= min(0.06, exclamation_hits * 0.03)
     score -= min(0.06, all_caps_hits * 0.03)
 
     score = min(max(score, 0.05), 0.95)
-    credibility_label = "Likely Credible" if score >= 0.6 else "Possibly Non-Credible"
-    confidence = min(0.95, 0.55 + abs(score - 0.5) * 0.9)
+    if score >= 0.62:
+        credibility_label = "Likely Credible"
+    elif score >= 0.45:
+        credibility_label = "Needs Review"
+    else:
+        credibility_label = "Possibly Non-Credible"
+
+    confidence = min(0.95, 0.52 + abs(score - 0.5) * 0.8)
+
+    if credibility_label == "Needs Review":
+        confidence = min(confidence, 0.68)
 
     indicators = _build_indicators(
         source_domain=source_domain,

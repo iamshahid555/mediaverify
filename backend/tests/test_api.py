@@ -91,6 +91,41 @@ class AnalyzeApiTests(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json()["history"][0]["source_domain"], "example.com")
 
+    @patch("app.api.analyze.save_analysis")
+    @patch("app.api.analyze.analyze_text")
+    @patch("app.api.analyze.prepare_content")
+    def test_analyze_supports_middle_review_label(
+        self,
+        mock_prepare_content,
+        mock_analyze_text,
+        mock_save_analysis,
+    ):
+        mock_prepare_content.return_value = {
+            "text": "A sports report described a cup final result with match events and player performance highlights.",
+            "input_type": "url",
+            "content_preview": "A sports report described a cup final result with match events and player performance highlights.",
+            "source_url": "https://goal.com/example",
+            "source_domain": "goal.com",
+        }
+        mock_analyze_text.return_value = {
+            "credibility_score": 0.56,
+            "credibility_label": "Needs Review",
+            "confidence": 0.61,
+            "indicators": [
+                "Source signal: goal.com carries a stronger reliability baseline than an unknown domain.",
+                "Next check: confirm the publication date, named sources, and whether independent reporting matches the same claim.",
+            ],
+        }
+
+        response = self.client.post(
+            "/analyze",
+            json={"url": "https://goal.com/example"},
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()["credibility_label"], "Needs Review")
+        mock_save_analysis.assert_called_once()
+
 
 if __name__ == "__main__":
     unittest.main()

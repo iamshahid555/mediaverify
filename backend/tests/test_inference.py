@@ -34,6 +34,30 @@ class InferenceTests(unittest.TestCase):
         self.assertLess(result["credibility_score"], 0.6)
         self.assertTrue(any("Risk signal" in indicator for indicator in result["indicators"]))
 
+    def test_unknown_domain_can_land_in_needs_review(self):
+        text = (
+            "The article describes the match result, key moments, and player performances from the cup final, "
+            "including the opening goal, possession swings, and second-half substitutions. It includes a date and "
+            "basic reporting detail, but it does not cite official statements or institutional sources."
+        )
+
+        result = analyze_text(text, source_domain="sports-example.com")
+
+        self.assertEqual(result["credibility_label"], "Needs Review")
+        self.assertTrue(any("source reference list" in indicator.lower() for indicator in result["indicators"]))
+
+    def test_goal_domain_receives_trusted_source_boost(self):
+        text = (
+            "Harry Kane scored a hat-trick as Bayern Munich won the cup final, with the match report covering the "
+            "scoreline, match events, and the timing of each goal. The article references the May 2026 final and "
+            "quotes the coach after the match."
+        )
+
+        result = analyze_text(text, source_domain="goal.com")
+
+        self.assertEqual(result["credibility_label"], "Likely Credible")
+        self.assertGreaterEqual(result["credibility_score"], 0.62)
+
 
 if __name__ == "__main__":
     unittest.main()

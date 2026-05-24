@@ -9,7 +9,7 @@ The project focuses on transparency as much as prediction. Instead of treating s
 - Analyze either pasted article text or a live public article URL.
 - Extract likely article-body content instead of scoring an entire webpage.
 - Score content using explainable credibility signals rather than pure sentiment.
-- Return a credibility score, label, confidence value, and explanation signals.
+- Return a credibility score, a three-level label, confidence value, and explanation signals.
 - Store previous analyses in SQLite and surface them in the dashboard.
 - Provide a clean React frontend backed by a FastAPI API.
 
@@ -180,6 +180,12 @@ Signals currently considered include:
 - sensational, conspiratorial, or absolutist phrasing
 
 This makes the output easier to explain, inspect, and refine. It also provides a clear baseline for future work involving trained misinformation or claim-verification models.
+
+Current labels:
+
+- `Likely Credible` for stronger source and wording signals
+- `Needs Review` for borderline or unknown-source cases that deserve manual checking
+- `Possibly Non-Credible` for weaker source support and stronger risk signals
 
 ## Data Persistence
 
